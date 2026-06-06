@@ -10,14 +10,13 @@ echo "Preparando la aplicacion local..."
 echo "La primera vez puede tardar porque instala dependencias y comprueba Ollama."
 echo ""
 
-scripts/start_local.sh
+(
+  sleep 8
+  open "http://127.0.0.1:8501"
+) &
 
+echo "Cuando aparezca la URL, deja esta ventana abierta."
+echo "Para apagar la app, vuelve a esta ventana y pulsa Ctrl+C."
 echo ""
-echo "Abriendo navegador en http://localhost:8501 ..."
-open "http://localhost:8501"
 
-echo ""
-echo "Listo. La interfaz esta abierta en el navegador."
-echo "Para apagarla despues, haz doble clic en Cerrar_Academic_Audit.command."
-echo ""
-read -r -p "Pulsa Enter para cerrar esta ventana. La app seguira abierta en segundo plano. "
+scripts/run_local.sh

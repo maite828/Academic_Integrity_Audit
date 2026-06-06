@@ -3,30 +3,36 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [ ! -x ".venv/bin/python" ]; then
-  python3 -m venv .venv
-fi
-
-.venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -e .
-
-mkdir -p runs
-
-if [ "${ACADEMIC_AUDIT_SETUP_AI:-1}" = "1" ]; then
-  scripts/setup_ai_local.sh "${ACADEMIC_AUDIT_MODEL:-llama3.1}"
-fi
-
-if [ -f ".streamlit.pid" ] && kill -0 "$(cat .streamlit.pid)" 2>/dev/null; then
+if curl -fsS "http://127.0.0.1:8501" >/dev/null 2>&1; then
   echo "Academic Integrity Audit ya esta arrancado en http://localhost:8501"
+  open "http://127.0.0.1:8501" 2>/dev/null || true
   exit 0
 fi
 
-nohup .venv/bin/streamlit run app.py \
-  --server.address 127.0.0.1 \
-  --server.port 8501 \
-  --browser.gatherUsageStats false \
-  > streamlit.log 2>&1 &
+if command -v osascript >/dev/null 2>&1; then
+  osascript - "$PWD" <<'OSA'
+on run argv
+  set projectDir to item 1 of argv
+  tell application "Terminal"
+    do script "cd " & quoted form of projectDir & " && ./scripts/run_local.sh"
+    activate
+  end tell
+end run
+OSA
 
-echo "$!" > .streamlit.pid
-echo "Academic Integrity Audit arrancado: http://localhost:8501"
-echo "Log: $(pwd)/streamlit.log"
+  for _ in $(seq 1 30); do
+    if curl -fsS "http://127.0.0.1:8501" >/dev/null 2>&1; then
+      open "http://127.0.0.1:8501" 2>/dev/null || true
+      echo "Academic Integrity Audit arrancado: http://localhost:8501"
+      exit 0
+    fi
+    sleep 1
+  done
+
+  echo "Se abrio una Terminal para arrancar la app."
+  echo "Si el navegador no se abre solo, entra en http://127.0.0.1:8501"
+  exit 0
+fi
+
+echo "Arrancando en primer plano. Deja esta terminal abierta."
+exec ./scripts/run_local.sh
