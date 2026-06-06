@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from difflib import SequenceMatcher
 from pathlib import Path
 
-from academic_audit.document.docx_reader import read_docx_paragraphs
+from academic_audit.document.docx_reader import read_document_paragraphs
 from academic_audit.document.style_audit import words
 
 
@@ -36,20 +36,21 @@ def find_local_matches(
     min_similarity: int = 82,
     max_matches: int = 50,
 ) -> list[SimilarityMatch]:
-    target_items = read_docx_paragraphs(target_docx)
+    target_items = read_document_paragraphs(target_docx)
     target_paragraphs = [text for _, text in target_items]
     matches: list[SimilarityMatch] = []
 
     docs: list[Path] = []
     if corpus_dir and corpus_dir.exists():
         docs.extend(path for path in corpus_dir.rglob("*.docx") if path.resolve() != target_docx.resolve())
+        docs.extend(path for path in corpus_dir.rglob("*.pdf") if path.resolve() != target_docx.resolve())
 
     # Always include internal similarity as a baseline originality signal.
     internal_docs = [(target_docx.name, target_paragraphs)]
     external_docs: list[tuple[str, list[str]]] = []
     for doc in docs:
         try:
-            external_docs.append((str(doc), [text for _, text in read_docx_paragraphs(doc)]))
+            external_docs.append((str(doc), [text for _, text in read_document_paragraphs(doc)]))
         except Exception:
             continue
 
@@ -77,4 +78,3 @@ def find_local_matches(
 
 def similarity_rows(matches: list[SimilarityMatch]) -> list[dict]:
     return [asdict(item) for item in matches]
-

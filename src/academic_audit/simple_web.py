@@ -49,7 +49,7 @@ def layout(title: str, body: str) -> HTMLResponse:
 <body>
   <header>
     <h1>Academic Integrity Audit</h1>
-    <p>Formulario local simple: sube un Word, analiza y descarga resultados.</p>
+    <p>Formulario local simple: sube un Word o PDF, analiza y descarga resultados.</p>
   </header>
   <main>{body}</main>
 </body>
@@ -99,8 +99,8 @@ async def home(_request):
     <h2>Analizar documento</h2>
     <p class="note">La IA local con Ollama es obligatoria. Modelo por defecto: <strong>{esc(DEFAULT_AI_MODEL)}</strong>.</p>
     <form action="/audit" method="post" enctype="multipart/form-data">
-      <label>Documento Word principal (.docx)</label>
-      <input type="file" name="docx" accept=".docx" required>
+      <label>Documento principal (.docx o .pdf)</label>
+      <input type="file" name="docx" accept=".docx,.pdf" required>
 
       <label>Nombre de la ejecucion</label>
       <input type="text" name="run_label" value="audit_run">
@@ -122,7 +122,7 @@ async def home(_request):
         <label>ZIP con salidas raw (.txt)</label>
         <input type="file" name="raw_zip" accept=".zip">
 
-        <label>ZIP con corpus local de documentos (.docx)</label>
+        <label>ZIP con corpus local de documentos (.docx o .pdf)</label>
         <input type="file" name="corpus_zip" accept=".zip">
       </details>
 
@@ -137,7 +137,7 @@ async def audit(request):
     form = await request.form()
     docx_upload = form.get("docx")
     if not isinstance(docx_upload, UploadFile) or not docx_upload.filename:
-        return layout("Error", '<section class="panel error">Falta el documento Word .docx.</section>')
+        return layout("Error", '<section class="panel error">Falta el documento .docx o .pdf.</section>')
 
     run_id = safe_label(str(form.get("run_label") or "audit_run"))
     run_dir = RUNS_DIR / run_id

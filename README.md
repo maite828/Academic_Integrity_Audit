@@ -19,7 +19,7 @@ En macOS, desde Finder o VS Code:
 
 1. Doble clic en `Abrir_Academic_Audit.command`.
 2. Espera a que se abra el navegador.
-3. Sube un documento Word `.docx`.
+3. Sube un documento Word `.docx` o PDF de texto `.pdf`.
 4. Pulsa `Analizar documento`.
 5. Descarga el ZIP, HTML, Markdown o JSON.
 
@@ -94,12 +94,12 @@ make stop
 
 Para la mayoria de usuarios, el flujo debe ser simple:
 
-1. Subir un documento Word `.docx`.
+1. Subir un documento Word `.docx` o PDF de texto `.pdf`.
 2. Pulsar `Analizar documento`.
 3. Revisar el dashboard.
 4. Descargar el informe en ZIP, HTML, Markdown o JSON.
 
-Con solo el `.docx`, la herramienta ya genera:
+Con solo el `.docx` o `.pdf`, la herramienta ya genera:
 
 - riesgo combinado de uso de IA;
 - riesgo combinado de originalidad/plagio;
@@ -209,6 +209,12 @@ Los porcentajes del modelo son estimaciones explicables, no pruebas definitivas.
 La ventaja del modulo local es que aporta interpretacion y preguntas de defensa sin
 enviar documentos fuera del ordenador.
 
+### PDF
+
+La herramienta acepta PDFs siempre que contengan texto seleccionable. Si el PDF es un
+escaneo o una imagen, no se podra extraer contenido y el informe mostrara un error.
+Para PDFs escaneados haria falta anadir OCR en una evolucion posterior.
+
 ### Opciones avanzadas
 
 Las subidas adicionales no son necesarias para un ensayo normal. Estan pensadas para
@@ -257,7 +263,7 @@ que existen evidencias crudas asociadas al experimento. Esto ayuda a distinguir 
 Esta opcion es util para auditoria academica porque permite documentar que los
 resultados no son solo una tabla redactada a mano.
 
-#### ZIP con corpus local de documentos `.docx`
+#### ZIP con corpus local de documentos `.docx` o `.pdf`
 
 Usalo si quieres comparar el documento principal contra otros documentos locales.
 Por ejemplo:
@@ -283,10 +289,10 @@ conviene revisar".
 
 Para mantener el producto simple:
 
-- usuario normal: subir solo `.docx`;
+- usuario normal: subir solo `.docx` o `.pdf`;
 - usuario con experimento: anadir CSV;
 - auditoria fuerte de experimento: anadir CSV + ZIP de logs;
-- revision de originalidad local: anadir ZIP con corpus `.docx`.
+- revision de originalidad local: anadir ZIP con corpus `.docx` o `.pdf`.
 
 ## Uso basico
 
@@ -299,7 +305,7 @@ Para mantener el producto simple:
 
 ## Similitud local
 
-Compara el documento objetivo contra otros `.docx` de una carpeta:
+Compara el documento objetivo contra otros `.docx` o `.pdf` de una carpeta:
 
 ```bash
 .venv/bin/academic-audit audit documento.docx --corpus-dir carpeta_con_docs --out-dir audit_output

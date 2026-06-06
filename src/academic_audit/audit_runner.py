@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from academic_audit.document.docx_reader import read_docx_paragraphs
+from academic_audit.document.docx_reader import read_document_paragraphs
 from academic_audit.document.style_audit import (
     audit_paragraphs,
     audit_sections,
@@ -72,11 +72,15 @@ def run_document_audit(
     ollama_url: str = "http://127.0.0.1:11434",
 ) -> dict[str, Any]:
     if not docx.exists():
-        raise FileNotFoundError(f"DOCX not found: {docx}")
+        raise FileNotFoundError(f"Document not found: {docx}")
 
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    items = read_docx_paragraphs(docx)
+    items = read_document_paragraphs(docx)
+    if not items:
+        raise ValueError(
+            "No se pudo extraer texto del documento. Si es PDF escaneado como imagen, hace falta OCR."
+        )
     paragraphs = audit_paragraphs(items)
     sections = audit_sections(paragraphs)
     summary: dict[str, Any] = summarize_document(paragraphs, sections)

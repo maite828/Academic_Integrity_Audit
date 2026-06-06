@@ -51,7 +51,7 @@ def main() -> None:
 
     with st.sidebar:
         st.header("Uso")
-        st.write("1. Sube un documento Word.")
+        st.write("1. Sube un documento Word o PDF.")
         st.write("2. Anade CSV/raw si quieres auditar trazabilidad experimental.")
         st.write("3. Anade un ZIP de documentos si quieres similitud local.")
         st.write("4. Pulsa Analizar.")
@@ -63,7 +63,7 @@ def main() -> None:
         ai_model = st.text_input("Modelo Ollama", value=DEFAULT_AI_MODEL)
         ollama_url = st.text_input("URL Ollama", value="http://127.0.0.1:11434")
 
-    docx_file = st.file_uploader("Documento Word principal (.docx)", type=["docx"])
+    docx_file = st.file_uploader("Documento principal (.docx o .pdf)", type=["docx", "pdf"])
 
     run_label = st.text_input("Nombre de la ejecucion", value="audit_run")
     results_csv = None
@@ -76,7 +76,7 @@ def main() -> None:
             raw_zip = st.file_uploader("ZIP opcional con salidas raw (.txt)", type=["zip"], key="raw_zip")
         with col_right:
             corpus_zip = st.file_uploader(
-                "ZIP opcional con corpus local de documentos .docx",
+                "ZIP opcional con corpus local de documentos .docx o .pdf",
                 type=["zip"],
                 key="corpus_zip",
             )
@@ -85,7 +85,7 @@ def main() -> None:
     analyze = st.button("Analizar documento", type="primary", disabled=docx_file is None)
 
     if not analyze:
-        st.info("Sube un `.docx` y pulsa Analizar documento.")
+        st.info("Sube un `.docx` o `.pdf` y pulsa Analizar documento.")
         return
 
     safe_label = "".join(ch if ch.isalnum() or ch in {"-", "_"} else "_" for ch in run_label).strip("_") or "audit_run"

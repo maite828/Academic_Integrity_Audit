@@ -13,11 +13,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    audit = sub.add_parser("audit", help="Audit a DOCX and produce reports.")
+    audit = sub.add_parser("audit", help="Audit a DOCX or text-based PDF and produce reports.")
     audit.add_argument("docx", type=Path)
     audit.add_argument("--results-csv", type=Path)
     audit.add_argument("--raw-dir", type=Path)
-    audit.add_argument("--corpus-dir", type=Path, help="Optional local DOCX corpus for similarity checks.")
+    audit.add_argument("--corpus-dir", type=Path, help="Optional local DOCX/PDF corpus for similarity checks.")
     audit.add_argument("--out-dir", type=Path, default=Path("audit_output"))
     audit.add_argument("--min-similarity", type=int, default=82)
     audit.add_argument(
