@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "academic-integrity-audit"
+version = "0.1.0"
+description = "Local academic integrity, originality and experiment-traceability audit dashboard."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "python-docx>=1.1.0",
+  "streamlit>=1.35.0",
+]
+
+[project.scripts]
+academic-audit = "academic_audit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
