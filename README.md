@@ -78,6 +78,65 @@ Con solo el `.docx`, la herramienta ya genera:
 - dashboard HTML;
 - CSV/JSON de resultados.
 
+## Revision con IA local
+
+La app puede anadir una capa de revision con un modelo local mediante Ollama. Esta
+funcionalidad es opcional y gratuita: no requiere API keys, no usa servicios de pago y
+no sube documentos a plataformas externas.
+
+Cuando se activa, el modelo produce:
+
+- riesgo estimado de uso intensivo de IA;
+- riesgo estimado de plagio/originalidad;
+- calidad academica estimada por modelo;
+- motivos explicativos;
+- recomendaciones de mejora;
+- preguntas que podria hacer un profesor para verificar autoria y comprension.
+
+### Requisitos
+
+1. Tener Ollama instalado y arrancado en el ordenador.
+2. Tener descargado al menos un modelo local.
+
+Ejemplos de modelos gratuitos que se pueden probar:
+
+```bash
+ollama pull llama3.1
+ollama pull mistral
+ollama pull qwen2.5
+```
+
+En la app visual:
+
+1. Abre la barra lateral.
+2. Activa `Revision con IA local (Ollama)`.
+3. Indica el modelo, por ejemplo `llama3.1`.
+4. Mantiene la URL por defecto si Ollama esta en el mismo ordenador:
+
+```text
+http://127.0.0.1:11434
+```
+
+En CLI:
+
+```bash
+.venv/bin/academic-audit audit documento.docx \
+  --ai-model llama3.1 \
+  --out-dir audit_output_ai
+```
+
+### Limites importantes
+
+Los porcentajes del modelo son estimaciones explicables, no pruebas definitivas.
+
+- `Riesgo uso IA` no confirma que el texto haya sido escrito por IA.
+- `Riesgo plagio/originalidad` no sustituye una busqueda externa tipo Turnitin.
+- Si no se aporta corpus local, el modelo no puede saber si el texto existe en internet.
+- La salida debe usarse como ayuda de revision, no como veredicto automatico.
+
+La ventaja del modulo local es que aporta interpretacion y preguntas de defensa sin
+enviar documentos fuera del ordenador.
+
 ### Opciones avanzadas
 
 Las subidas adicionales no son necesarias para un ensayo normal. Estan pensadas para
@@ -198,6 +257,13 @@ Los resultados quedan en:
 
 ```text
 runs/
+```
+
+Si usas Docker y Ollama esta instalado en el ordenador anfitrion, en la app usa esta
+URL de Ollama:
+
+```text
+http://host.docker.internal:11434
 ```
 
 ## Salidas

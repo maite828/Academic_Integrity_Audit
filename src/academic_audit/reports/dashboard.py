@@ -28,6 +28,7 @@ def write_dashboard(
     similarity_rows: list[dict[str, Any]],
 ) -> None:
     exp = summary.get("experiment") or {}
+    ai_review = summary.get("ai_model_review") or {}
     top_paragraphs = sorted(paragraph_rows, key=lambda row: (-int(row.get("risk_pct", 0)), -int(row.get("words", 0))))[:12]
     paragraph_html = "\n".join(
         "<tr>"
@@ -49,6 +50,40 @@ def write_dashboard(
         "</tr>"
         for row in similarity_rows[:20]
     ) or '<tr><td colspan="5">No se detectaron coincidencias locales relevantes.</td></tr>'
+    ai_html = ""
+    if ai_review:
+        if ai_review.get("available"):
+            ai_reasons = "".join(f"<li>{esc(item)}</li>" for item in ai_review.get("ai_risk_reasons", []))
+            plagiarism_reasons = "".join(
+                f"<li>{esc(item)}</li>" for item in ai_review.get("plagiarism_risk_reasons", [])
+            )
+            recommendations = "".join(
+                f"<li>{esc(item)}</li>" for item in ai_review.get("quality_recommendations", [])
+            )
+            questions = "".join(f"<li>{esc(item)}</li>" for item in ai_review.get("teacher_questions", []))
+            ai_html = f"""
+  <section class="card section">
+    <h2>Revision con IA local</h2>
+    <p class="note">Modelo: <strong>{esc(ai_review.get('model'))}</strong>. Estas cifras son estimaciones explicables, no una prueba definitiva de uso de IA ni de plagio.</p>
+    <div class="grid">
+      <div class="card"><div class="kpi-label">Riesgo uso IA</div><div class="kpi">{esc(ai_review.get('ai_usage_risk_pct'))}%</div></div>
+      <div class="card"><div class="kpi-label">Riesgo plagio/originalidad</div><div class="kpi">{esc(ai_review.get('plagiarism_risk_pct'))}%</div></div>
+      <div class="card"><div class="kpi-label">Calidad segun modelo</div><div class="kpi">{esc(ai_review.get('quality_score_pct'))}%</div></div>
+      <div class="card"><div class="kpi-label">Veredicto</div><p>{esc(ai_review.get('overall_verdict'))}</p></div>
+    </div>
+    <h3>Motivos de riesgo IA</h3><ul>{ai_reasons or "<li>Sin motivos destacados.</li>"}</ul>
+    <h3>Motivos de originalidad/plagio</h3><ul>{plagiarism_reasons or "<li>Sin motivos destacados.</li>"}</ul>
+    <h3>Recomendaciones de calidad</h3><ul>{recommendations or "<li>Sin recomendaciones destacadas.</li>"}</ul>
+    <h3>Preguntas de defensa</h3><ul>{questions or "<li>Sin preguntas destacadas.</li>"}</ul>
+  </section>
+"""
+        else:
+            ai_html = f"""
+  <section class="card section">
+    <h2>Revision con IA local</h2>
+    <p class="note">No se pudo ejecutar la revision con Ollama: {esc(ai_review.get('error'))}</p>
+  </section>
+"""
 
     section_html = "\n".join(
         "<tr>"
@@ -112,6 +147,7 @@ def write_dashboard(
     <h2>Secciones</h2>
     <table><thead><tr><th>Seccion</th><th>Parrafos</th><th>Palabras</th><th>Riesgo</th><th>Calidad</th></tr></thead><tbody>{section_html}</tbody></table>
   </section>
+  {ai_html}
   <section class="card section">
     <h2>Parrafos prioritarios</h2>
     <table><thead><tr><th>#</th><th>Seccion</th><th>Riesgo</th><th>Motivo</th><th>Extracto</th></tr></thead><tbody>{paragraph_html}</tbody></table>
@@ -139,8 +175,8 @@ def write_markdown(
         "",
         f"- Riesgo heuristico: **{summary.get('ai_style_risk_pct', 0)}%**",
         f"- Calidad academica: **{summary.get('academic_quality_pct', 0)}%**",
-        f"- Fiabilidad experimental: **{summary.get('experiment_reliability_pct', 'n/a')}%**",
-        f"- Coincidencias locales: **{len(similarity_rows)}**",
+    f"- Fiabilidad experimental: **{summary.get('experiment_reliability_pct', 'n/a')}%**",
+    f"- Coincidencias locales: **{len(similarity_rows)}**",
         "",
         "## Secciones",
         "",
@@ -160,5 +196,23 @@ def write_markdown(
             )
     else:
         lines.append("- No se detectaron coincidencias locales relevantes.")
+    ai_review = summary.get("ai_model_review") or {}
+    lines.extend(["", "## Revision con IA local", ""])
+    if ai_review:
+        if ai_review.get("available"):
+            lines.extend(
+                [
+                    f"- Modelo: **{ai_review.get('model')}**",
+                    f"- Riesgo estimado de uso de IA: **{ai_review.get('ai_usage_risk_pct')}%**",
+                    f"- Riesgo estimado de plagio/originalidad: **{ai_review.get('plagiarism_risk_pct')}%**",
+                    f"- Calidad estimada por modelo: **{ai_review.get('quality_score_pct')}%**",
+                    f"- Veredicto: {ai_review.get('overall_verdict')}",
+                    "",
+                    "Nota: estas cifras son estimaciones explicables; no prueban por si solas uso de IA ni plagio.",
+                ]
+            )
+        else:
+            lines.append(f"- Revision no disponible: {ai_review.get('error')}")
+    else:
+        lines.append("- No se solicito revision con IA local.")
     path.write_text("\n".join(lines), encoding="utf-8")
-

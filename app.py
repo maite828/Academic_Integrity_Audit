@@ -57,16 +57,29 @@ def main() -> None:
         st.write("4. Pulsa Analizar.")
         st.divider()
         min_similarity = st.slider("Umbral de similitud local", 70, 98, 82)
+        st.divider()
+        enable_ai = st.checkbox("Revision con IA local (Ollama)", value=False)
+        ai_model = st.text_input("Modelo Ollama", value="llama3.1", disabled=not enable_ai)
+        ollama_url = st.text_input("URL Ollama", value="http://127.0.0.1:11434", disabled=not enable_ai)
 
     docx_file = st.file_uploader("Documento Word principal (.docx)", type=["docx"])
 
-    col_left, col_right = st.columns(2)
-    with col_left:
-        results_csv = st.file_uploader("CSV de resultados experimentales opcional", type=["csv"])
-        raw_zip = st.file_uploader("ZIP opcional con salidas raw (.txt)", type=["zip"], key="raw_zip")
-    with col_right:
-        corpus_zip = st.file_uploader("ZIP opcional con corpus local de documentos .docx", type=["zip"], key="corpus_zip")
-        run_label = st.text_input("Nombre de la ejecucion", value="audit_run")
+    run_label = st.text_input("Nombre de la ejecucion", value="audit_run")
+    results_csv = None
+    raw_zip = None
+    corpus_zip = None
+    with st.expander("Opciones avanzadas: experimento, corpus local e IA"):
+        col_left, col_right = st.columns(2)
+        with col_left:
+            results_csv = st.file_uploader("CSV de resultados experimentales opcional", type=["csv"])
+            raw_zip = st.file_uploader("ZIP opcional con salidas raw (.txt)", type=["zip"], key="raw_zip")
+        with col_right:
+            corpus_zip = st.file_uploader(
+                "ZIP opcional con corpus local de documentos .docx",
+                type=["zip"],
+                key="corpus_zip",
+            )
+            st.caption("La revision con IA usa Ollama local. No sube documentos a servicios externos.")
 
     analyze = st.button("Analizar documento", type="primary", disabled=docx_file is None)
 
@@ -96,6 +109,8 @@ def main() -> None:
                 raw_dir=raw_dir,
                 corpus_dir=corpus_dir,
                 min_similarity=min_similarity,
+                ai_model=ai_model.strip() if enable_ai and ai_model.strip() else None,
+                ollama_url=ollama_url.strip() if ollama_url.strip() else "http://127.0.0.1:11434",
             )
         except Exception as exc:
             st.error(f"No se pudo ejecutar la auditoria: {exc}")
@@ -115,6 +130,30 @@ def main() -> None:
         display_metric("Fiabilidad experimental", f"{reliability}%" if reliability is not None else None)
     with metric_cols[3]:
         display_metric("Coincidencias locales", len(similarity_rows))
+
+    ai_review = summary.get("ai_model_review")
+    if ai_review:
+        st.subheader("Revision con IA local")
+        if ai_review.get("available"):
+            ai_cols = st.columns(3)
+            with ai_cols[0]:
+                display_metric("Riesgo uso IA", f"{ai_review.get('ai_usage_risk_pct')}%")
+            with ai_cols[1]:
+                display_metric("Riesgo plagio/originalidad", f"{ai_review.get('plagiarism_risk_pct')}%")
+            with ai_cols[2]:
+                display_metric("Calidad segun modelo", f"{ai_review.get('quality_score_pct')}%")
+            st.write(ai_review.get("overall_verdict") or "")
+            with st.expander("Motivos y recomendaciones del modelo"):
+                st.write("Motivos de riesgo IA")
+                st.write(ai_review.get("ai_risk_reasons") or [])
+                st.write("Motivos de originalidad/plagio")
+                st.write(ai_review.get("plagiarism_risk_reasons") or [])
+                st.write("Recomendaciones")
+                st.write(ai_review.get("quality_recommendations") or [])
+                st.write("Preguntas de defensa")
+                st.write(ai_review.get("teacher_questions") or [])
+        else:
+            st.warning(ai_review.get("error") or "No se pudo ejecutar la revision con IA local.")
 
     st.subheader("Archivos generados")
     dashboard_path = out_dir / "dashboard.html"

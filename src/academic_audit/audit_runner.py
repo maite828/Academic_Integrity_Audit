@@ -11,6 +11,7 @@ from academic_audit.document.style_audit import (
     section_rows,
     summarize_document,
 )
+from academic_audit.ai.ollama_review import run_ollama_review
 from academic_audit.experiment.results_audit import load_results
 from academic_audit.originality.local_similarity import find_local_matches, similarity_rows
 from academic_audit.reports.dashboard import write_dashboard, write_markdown
@@ -24,6 +25,8 @@ def run_document_audit(
     raw_dir: Path | None = None,
     corpus_dir: Path | None = None,
     min_similarity: int = 82,
+    ai_model: str | None = None,
+    ollama_url: str = "http://127.0.0.1:11434",
 ) -> dict[str, Any]:
     if not docx.exists():
         raise FileNotFoundError(f"DOCX not found: {docx}")
@@ -55,6 +58,18 @@ def run_document_audit(
     s_rows = section_rows(sections)
     sim_rows = similarity_rows(matches)
 
+    if ai_model:
+        document_text = "\n\n".join(text for _, text in items)
+        summary["ai_model_review"] = run_ollama_review(
+            document_text=document_text,
+            summary=summary,
+            similarity_rows=sim_rows,
+            model=ai_model,
+            base_url=ollama_url,
+        )
+    else:
+        summary["ai_model_review"] = None
+
     write_csv(out_dir / "paragraph_audit.csv", p_rows)
     write_csv(out_dir / "section_audit.csv", s_rows)
     write_csv(out_dir / "similarity_matches.csv", sim_rows)
@@ -69,4 +84,3 @@ def run_document_audit(
         "similarity_rows": sim_rows,
         "out_dir": out_dir,
     }
-
