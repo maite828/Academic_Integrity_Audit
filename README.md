@@ -13,6 +13,28 @@ explicable y trazable:
 - similitud interna y local entre documentos;
 - dashboard HTML, informe Markdown, CSV y JSON.
 
+## Modo facil
+
+En macOS, desde Finder o VS Code:
+
+1. Doble clic en `Abrir_Academic_Audit.command`.
+2. Espera a que se abra el navegador.
+3. Sube un documento Word `.docx`.
+4. Pulsa `Analizar documento`.
+5. Descarga el ZIP, HTML, Markdown o JSON.
+
+Para abrir directamente el ultimo dashboard generado:
+
+```text
+Abrir_Ultimo_Dashboard.command
+```
+
+Para apagar la app:
+
+```text
+Cerrar_Academic_Audit.command
+```
+
 ## Instalacion local
 
 Desde la carpeta del proyecto:
