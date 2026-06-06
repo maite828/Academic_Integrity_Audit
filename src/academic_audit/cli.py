@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from academic_audit.audit_runner import run_document_audit
+from academic_audit.audit_runner import DEFAULT_AI_MODEL, run_document_audit
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,7 +20,11 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument("--corpus-dir", type=Path, help="Optional local DOCX corpus for similarity checks.")
     audit.add_argument("--out-dir", type=Path, default=Path("audit_output"))
     audit.add_argument("--min-similarity", type=int, default=82)
-    audit.add_argument("--ai-model", help="Optional local Ollama model, for example llama3.1 or mistral.")
+    audit.add_argument(
+        "--ai-model",
+        default=DEFAULT_AI_MODEL,
+        help=f"Required local Ollama model. Default: {DEFAULT_AI_MODEL}.",
+    )
     audit.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     return parser
 
@@ -40,18 +44,18 @@ def run_audit(args: argparse.Namespace) -> int:
     sim_rows = result["similarity_rows"]
 
     print(f"OK dashboard: {args.out_dir / 'dashboard.html'}")
+    print(f"Riesgo IA combinado: {summary['combined_ai_usage_risk_pct']}%")
+    print(f"Riesgo originalidad combinado: {summary['combined_originality_risk_pct']}%")
+    print(f"Calidad integral: {summary['combined_quality_score_pct']}%")
     print(f"Riesgo heuristico: {summary['ai_style_risk_pct']}%")
     print(f"Calidad academica: {summary['academic_quality_pct']}%")
     if summary.get("experiment_reliability_pct") is not None:
         print(f"Fiabilidad experimental: {summary['experiment_reliability_pct']}%")
     review = summary.get("ai_model_review")
-    if review:
-        if review.get("available"):
-            print(f"Modelo IA local: {review.get('model')}")
-            print(f"Riesgo uso IA estimado por modelo: {review.get('ai_usage_risk_pct')}%")
-            print(f"Riesgo plagio/originalidad estimado por modelo: {review.get('plagiarism_risk_pct')}%")
-        else:
-            print(f"Revision IA local no disponible: {review.get('error')}")
+    if review and review.get("available"):
+        print(f"Modelo IA local: {review.get('model')}")
+        print(f"Riesgo uso IA estimado por modelo: {review.get('ai_usage_risk_pct')}%")
+        print(f"Riesgo plagio/originalidad estimado por modelo: {review.get('plagiarism_risk_pct')}%")
     print(f"Coincidencias locales: {len(sim_rows)}")
     return 0
 

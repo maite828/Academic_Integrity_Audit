@@ -7,6 +7,8 @@ explicable y trazable:
 
 - calidad academica del documento;
 - riesgo heuristico de estilo generico;
+- revision obligatoria con IA local;
+- metricas combinadas IA + heuristicas;
 - evidencia experimental reproducible;
 - similitud interna y local entre documentos;
 - dashboard HTML, informe Markdown, CSV y JSON.
@@ -29,7 +31,8 @@ La forma mas robusta en cualquier terminal:
 scripts/run_local.sh
 ```
 
-Apaga con `Ctrl+C`.
+El arranque prepara tambien la IA local con Ollama y el modelo `llama3.1`. La primera
+vez puede tardar porque descarga el modelo. Apaga con `Ctrl+C`.
 
 Arranque en segundo plano:
 
@@ -70,21 +73,23 @@ Para la mayoria de usuarios, el flujo debe ser simple:
 
 Con solo el `.docx`, la herramienta ya genera:
 
-- riesgo heuristico de estilo generico;
-- calidad academica estimada;
+- riesgo combinado de uso de IA;
+- riesgo combinado de originalidad/plagio;
+- calidad academica integral;
+- desglose heuristico y desglose del modelo local;
 - auditoria por secciones;
 - parrafos prioritarios;
 - informe Markdown;
 - dashboard HTML;
 - CSV/JSON de resultados.
 
-## Revision con IA local
+## Revision obligatoria con IA local
 
-La app puede anadir una capa de revision con un modelo local mediante Ollama. Esta
-funcionalidad es opcional y gratuita: no requiere API keys, no usa servicios de pago y
-no sube documentos a plataformas externas.
+La app incorpora una capa de revision con un modelo local mediante Ollama. Esta
+funcionalidad es obligatoria, gratuita, no requiere API keys, no usa servicios de pago
+y no sube documentos a plataformas externas.
 
-Cuando se activa, el modelo produce:
+En cada auditoria, el modelo produce:
 
 - riesgo estimado de uso intensivo de IA;
 - riesgo estimado de plagio/originalidad;
@@ -92,6 +97,13 @@ Cuando se activa, el modelo produce:
 - motivos explicativos;
 - recomendaciones de mejora;
 - preguntas que podria hacer un profesor para verificar autoria y comprension.
+
+La portada del informe no se basa solo en el modelo ni solo en heuristicas. Usa tres
+metricas combinadas:
+
+- `Riesgo IA combinado`: 45% heuristica documental + 55% modelo IA local.
+- `Riesgo originalidad combinado`: maximo entre similitud local y riesgo estimado por el modelo.
+- `Calidad integral`: 60% calidad heuristica + 40% calidad estimada por el modelo.
 
 ### Requisitos
 
@@ -128,9 +140,8 @@ ollama pull qwen2.5
 En la app visual:
 
 1. Abre la barra lateral.
-2. Activa `Revision con IA local (Ollama)`.
-3. Indica el modelo, por ejemplo `llama3.1`.
-4. Mantiene la URL por defecto si Ollama esta en el mismo ordenador:
+2. Mantiene el modelo por defecto `llama3.1` o indica otro modelo local.
+3. Mantiene la URL por defecto si Ollama esta en el mismo ordenador:
 
 ```text
 http://127.0.0.1:11434
@@ -140,20 +151,22 @@ En CLI:
 
 ```bash
 .venv/bin/academic-audit audit documento.docx \
-  --ai-model llama3.1 \
   --out-dir audit_output_ai
 ```
 
-Para que `scripts/run_local.sh` prepare tambien la IA antes de abrir la app:
+El CLI usa `llama3.1` por defecto. Puedes cambiar el modelo:
 
 ```bash
-ACADEMIC_AUDIT_SETUP_AI=1 scripts/run_local.sh
+.venv/bin/academic-audit audit documento.docx \
+  --ai-model mistral \
+  --out-dir audit_output_ai
 ```
 
-Puedes cambiar el modelo:
+`scripts/run_local.sh` y `scripts/start_local.sh` preparan la IA automaticamente. Si ya
+esta preparada y quieres saltar esa comprobacion:
 
 ```bash
-ACADEMIC_AUDIT_SETUP_AI=1 ACADEMIC_AUDIT_MODEL=mistral scripts/run_local.sh
+ACADEMIC_AUDIT_SETUP_AI=0 scripts/run_local.sh
 ```
 
 ### Limites importantes

@@ -18,6 +18,49 @@ from academic_audit.reports.dashboard import write_dashboard, write_markdown
 from academic_audit.reports.writers import write_csv, write_json
 
 
+DEFAULT_AI_MODEL = "llama3.1"
+
+
+def _pct(value: Any) -> int:
+    try:
+        return max(0, min(100, int(round(float(value)))))
+    except Exception:
+        return 0
+
+
+def _local_similarity_risk(sim_rows: list[dict[str, Any]]) -> int:
+    values = [_pct(row.get("similarity_pct")) for row in sim_rows]
+    return max(values, default=0)
+
+
+def _add_combined_scores(summary: dict[str, Any], sim_rows: list[dict[str, Any]], ai_model: str) -> None:
+    review = summary.get("ai_model_review") or {}
+    if not review.get("available"):
+        raise RuntimeError(
+            "La revision IA local es obligatoria, pero no se pudo ejecutar. "
+            f"Modelo: {ai_model}. Error: {review.get('error') or 'sin detalle'}. "
+            "Ejecuta scripts/setup_ai_local.sh llama3.1 y reintenta."
+        )
+
+    heuristic_ai_risk = _pct(summary.get("ai_style_risk_pct"))
+    model_ai_risk = _pct(review.get("ai_usage_risk_pct"))
+    local_similarity_risk = _local_similarity_risk(sim_rows)
+    model_originality_risk = _pct(review.get("plagiarism_risk_pct"))
+    heuristic_quality = _pct(summary.get("academic_quality_pct"))
+    model_quality = _pct(review.get("quality_score_pct"))
+
+    summary["ai_required"] = True
+    summary["ai_model_used"] = review.get("model") or ai_model
+    summary["combined_ai_usage_risk_pct"] = round(heuristic_ai_risk * 0.45 + model_ai_risk * 0.55)
+    summary["combined_originality_risk_pct"] = max(local_similarity_risk, model_originality_risk)
+    summary["combined_quality_score_pct"] = round(heuristic_quality * 0.60 + model_quality * 0.40)
+    summary["combined_scoring"] = {
+        "ai_usage_risk": "45% heuristica documental + 55% modelo IA local",
+        "originality_risk": "maximo entre similitud local y riesgo de originalidad estimado por modelo",
+        "quality_score": "60% calidad heuristica + 40% calidad estimada por modelo",
+    }
+
+
 def run_document_audit(
     docx: Path,
     out_dir: Path,
@@ -25,7 +68,7 @@ def run_document_audit(
     raw_dir: Path | None = None,
     corpus_dir: Path | None = None,
     min_similarity: int = 82,
-    ai_model: str | None = None,
+    ai_model: str = DEFAULT_AI_MODEL,
     ollama_url: str = "http://127.0.0.1:11434",
 ) -> dict[str, Any]:
     if not docx.exists():
@@ -58,17 +101,16 @@ def run_document_audit(
     s_rows = section_rows(sections)
     sim_rows = similarity_rows(matches)
 
-    if ai_model:
-        document_text = "\n\n".join(text for _, text in items)
-        summary["ai_model_review"] = run_ollama_review(
-            document_text=document_text,
-            summary=summary,
-            similarity_rows=sim_rows,
-            model=ai_model,
-            base_url=ollama_url,
-        )
-    else:
-        summary["ai_model_review"] = None
+    model_name = (ai_model or DEFAULT_AI_MODEL).strip() or DEFAULT_AI_MODEL
+    document_text = "\n\n".join(text for _, text in items)
+    summary["ai_model_review"] = run_ollama_review(
+        document_text=document_text,
+        summary=summary,
+        similarity_rows=sim_rows,
+        model=model_name,
+        base_url=ollama_url,
+    )
+    _add_combined_scores(summary, sim_rows, model_name)
 
     write_csv(out_dir / "paragraph_audit.csv", p_rows)
     write_csv(out_dir / "section_audit.csv", s_rows)

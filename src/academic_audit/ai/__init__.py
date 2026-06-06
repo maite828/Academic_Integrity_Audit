@@ -1,2 +1,1 @@
-"""Optional local AI review modules."""
-
+"""Required local AI review modules."""
