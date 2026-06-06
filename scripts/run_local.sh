@@ -12,6 +12,10 @@ fi
 
 mkdir -p runs
 
+if [ "${ACADEMIC_AUDIT_SETUP_AI:-0}" = "1" ]; then
+  scripts/setup_ai_local.sh "${ACADEMIC_AUDIT_MODEL:-llama3.1}"
+fi
+
 echo "Abriendo Academic Integrity Audit en http://localhost:8501"
 echo "Para apagarlo, pulsa Ctrl+C en esta terminal."
 
@@ -19,4 +23,3 @@ echo "Para apagarlo, pulsa Ctrl+C en esta terminal."
   --server.address 127.0.0.1 \
   --server.port 8501 \
   --browser.gatherUsageStats false
-

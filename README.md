@@ -98,6 +98,25 @@ Cuando se activa, el modelo produce:
 1. Tener Ollama instalado y arrancado en el ordenador.
 2. Tener descargado al menos un modelo local.
 
+La forma automatica recomendada:
+
+```bash
+scripts/setup_ai_local.sh llama3.1
+```
+
+Tambien:
+
+```bash
+make setup-ai
+```
+
+Este comando:
+
+- instala Ollama con Homebrew si no existe;
+- arranca Ollama como servicio local;
+- comprueba que responde en `http://127.0.0.1:11434`;
+- descarga el modelo indicado si falta.
+
 Ejemplos de modelos gratuitos que se pueden probar:
 
 ```bash
@@ -123,6 +142,18 @@ En CLI:
 .venv/bin/academic-audit audit documento.docx \
   --ai-model llama3.1 \
   --out-dir audit_output_ai
+```
+
+Para que `scripts/run_local.sh` prepare tambien la IA antes de abrir la app:
+
+```bash
+ACADEMIC_AUDIT_SETUP_AI=1 scripts/run_local.sh
+```
+
+Puedes cambiar el modelo:
+
+```bash
+ACADEMIC_AUDIT_SETUP_AI=1 ACADEMIC_AUDIT_MODEL=mistral scripts/run_local.sh
 ```
 
 ### Limites importantes

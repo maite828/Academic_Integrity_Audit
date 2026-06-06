@@ -9,3 +9,5 @@ runs/
 .streamlit/
 .streamlit.pid
 streamlit.log
+.ollama_app.pid
+ollama_app.log

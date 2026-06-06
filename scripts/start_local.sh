@@ -12,6 +12,10 @@ fi
 
 mkdir -p runs
 
+if [ "${ACADEMIC_AUDIT_SETUP_AI:-0}" = "1" ]; then
+  scripts/setup_ai_local.sh "${ACADEMIC_AUDIT_MODEL:-llama3.1}"
+fi
+
 if [ -f ".streamlit.pid" ] && kill -0 "$(cat .streamlit.pid)" 2>/dev/null; then
   echo "Academic Integrity Audit ya esta arrancado en http://localhost:8501"
   exit 0
@@ -26,4 +30,3 @@ nohup .venv/bin/streamlit run app.py \
 echo "$!" > .streamlit.pid
 echo "Academic Integrity Audit arrancado: http://localhost:8501"
 echo "Log: $(pwd)/streamlit.log"
-
