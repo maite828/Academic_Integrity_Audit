@@ -23,6 +23,12 @@ En macOS, desde Finder o VS Code:
 4. Pulsa `Analizar documento`.
 5. Descarga el ZIP, HTML, Markdown o JSON.
 
+La interfaz facil es un formulario HTML local en:
+
+```text
+http://127.0.0.1:8601
+```
+
 Para abrir directamente el ultimo dashboard generado:
 
 ```text
@@ -65,7 +71,7 @@ scripts/start_local.sh
 Abre:
 
 ```text
-http://localhost:8501
+http://127.0.0.1:8601
 ```
 
 Para apagar:

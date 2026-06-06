@@ -3,18 +3,21 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [ ! -f ".streamlit.pid" ]; then
-  echo "No hay PID local. Si Streamlit sigue abierto, cierralo desde la terminal donde lo arrancaste."
-  exit 0
-fi
+stopped=0
 
-pid="$(cat .streamlit.pid)"
-if kill -0 "$pid" 2>/dev/null; then
-  kill "$pid"
-  echo "Academic Integrity Audit detenido."
-else
-  echo "El proceso ya no estaba activo."
-fi
+for port in 8501 8601; do
+  pids="$(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)"
+  if [ -n "$pids" ]; then
+    kill $pids
+    echo "Proceso detenido en puerto $port."
+    stopped=1
+  fi
+done
 
 rm -f .streamlit.pid
 
+if [ "$stopped" = "0" ]; then
+  echo "No habia app local escuchando en 8501 ni 8601."
+else
+  echo "Academic Integrity Audit detenido."
+fi
