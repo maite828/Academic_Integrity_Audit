@@ -59,14 +59,103 @@ make stop
 
 ## Uso visual
 
-La app permite:
+### Flujo principal
 
-- subir un documento Word `.docx`;
-- subir opcionalmente un CSV de resultados;
-- subir opcionalmente un ZIP con salidas crudas `.txt`;
-- subir opcionalmente un ZIP con documentos `.docx` para similitud local;
-- ejecutar la auditoria;
-- descargar ZIP, HTML, Markdown y JSON.
+Para la mayoria de usuarios, el flujo debe ser simple:
+
+1. Subir un documento Word `.docx`.
+2. Pulsar `Analizar documento`.
+3. Revisar el dashboard.
+4. Descargar el informe en ZIP, HTML, Markdown o JSON.
+
+Con solo el `.docx`, la herramienta ya genera:
+
+- riesgo heuristico de estilo generico;
+- calidad academica estimada;
+- auditoria por secciones;
+- parrafos prioritarios;
+- informe Markdown;
+- dashboard HTML;
+- CSV/JSON de resultados.
+
+### Opciones avanzadas
+
+Las subidas adicionales no son necesarias para un ensayo normal. Estan pensadas para
+trabajos con experimentos, practicas tecnicas, TFG/TFM, articulos o proyectos donde
+hay datos externos que justifican los resultados.
+
+#### CSV de resultados experimentales
+
+Usalo cuando el trabajo tenga una tabla de resultados generada por un experimento.
+Por ejemplo:
+
+```text
+results/summary/satellite_results.csv
+```
+
+La app lo usa para revisar trazabilidad experimental:
+
+- numero de filas del experimento;
+- planificadores, metodos o sistemas comparados;
+- problemas, datasets o instancias evaluadas;
+- ejecuciones resueltas o fallidas;
+- completitud de metricas;
+- campos ausentes como tiempo, coste, nodos, acciones o errores.
+
+No intenta inventar metricas. Si el CSV no tiene un dato, el informe lo trata como
+ausente.
+
+#### ZIP con salidas crudas `.txt`
+
+Usalo cuando tengas logs, salidas de terminal o respuestas originales de herramientas.
+Por ejemplo:
+
+```text
+results/raw/*.txt
+```
+
+Como la app web no puede leer carpetas locales completas directamente desde el
+navegador, esas salidas se suben comprimidas en un ZIP.
+
+La app no interpreta todos los logs en profundidad. Su funcion principal es comprobar
+que existen evidencias crudas asociadas al experimento. Esto ayuda a distinguir entre:
+
+- una tabla final sin respaldo;
+- una tabla final respaldada por salidas originales trazables.
+
+Esta opcion es util para auditoria academica porque permite documentar que los
+resultados no son solo una tabla redactada a mano.
+
+#### ZIP con corpus local de documentos `.docx`
+
+Usalo si quieres comparar el documento principal contra otros documentos locales.
+Por ejemplo:
+
+```text
+corpus/
+  entrega_v1.docx
+  entrega_v2.docx
+  trabajos_referencia.docx
+```
+
+La app busca similitud textual local entre parrafos. Esto puede servir para detectar:
+
+- reutilizacion excesiva entre versiones;
+- autocopia;
+- coincidencias con documentos de referencia;
+- fragmentos que requieren cita o revision.
+
+El resultado no significa "plagio confirmado". Significa "coincidencia textual que
+conviene revisar".
+
+### Recomendacion de usabilidad
+
+Para mantener el producto simple:
+
+- usuario normal: subir solo `.docx`;
+- usuario con experimento: anadir CSV;
+- auditoria fuerte de experimento: anadir CSV + ZIP de logs;
+- revision de originalidad local: anadir ZIP con corpus `.docx`.
 
 ## Uso basico
 
