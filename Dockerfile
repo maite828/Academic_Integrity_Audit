@@ -7,12 +7,10 @@ WORKDIR /app
 
 COPY pyproject.toml README.md ./
 COPY src ./src
-COPY app.py ./app.py
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -e .
 
-EXPOSE 8501
+EXPOSE 8601
 
-CMD ["streamlit", "run", "app.py", "--server.address", "0.0.0.0", "--server.port", "8501", "--browser.gatherUsageStats", "false"]
-
+CMD ["uvicorn", "academic_audit.simple_web:app", "--host", "0.0.0.0", "--port", "8601"]

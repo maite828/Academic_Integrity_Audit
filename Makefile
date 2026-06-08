@@ -24,4 +24,4 @@ docker-down:
 	docker compose down
 
 test:
-	.venv/bin/python -m compileall -q src app.py
+	.venv/bin/python -m compileall -q src

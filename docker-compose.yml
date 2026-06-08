@@ -3,8 +3,7 @@ services:
     build: .
     container_name: academic-integrity-audit
     ports:
-      - "8501:8501"
+      - "8601:8601"
     volumes:
-      - ./runs:/app/runs
+      - ./runs_form:/app/runs_form
     restart: unless-stopped
-

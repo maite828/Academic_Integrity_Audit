@@ -12,7 +12,7 @@ fi
 
 mkdir -p runs_form
 
-if [ "${ACADEMIC_AUDIT_SETUP_AI:-1}" = "1" ]; then
+if [ "${ACADEMIC_AUDIT_SETUP_AI:-0}" = "1" ]; then
   scripts/setup_ai_local.sh "${ACADEMIC_AUDIT_MODEL:-llama3.1}"
 fi
 

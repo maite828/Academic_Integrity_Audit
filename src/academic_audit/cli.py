@@ -23,7 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     audit.add_argument(
         "--ai-model",
         default=DEFAULT_AI_MODEL,
-        help=f"Required local Ollama model. Default: {DEFAULT_AI_MODEL}.",
+        help=f"Local Ollama model used when available. Default: {DEFAULT_AI_MODEL}.",
     )
     audit.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     return parser
@@ -44,11 +44,23 @@ def run_audit(args: argparse.Namespace) -> int:
     sim_rows = result["similarity_rows"]
 
     print(f"OK dashboard: {args.out_dir / 'dashboard.html'}")
-    print(f"Riesgo IA combinado: {summary['combined_ai_usage_risk_pct']}%")
-    print(f"Riesgo originalidad combinado: {summary['combined_originality_risk_pct']}%")
-    print(f"Calidad integral: {summary['combined_quality_score_pct']}%")
+    has_ai_review = summary.get("audit_mode") == "ai_plus_heuristics"
+    print(f"Modo auditoria: {summary.get('audit_mode', 'n/a')}")
+    print(f"{'Riesgo IA combinado' if has_ai_review else 'Riesgo estilo IA'}: {summary['combined_ai_usage_risk_pct']}%")
+    print(
+        f"{'Riesgo originalidad combinado' if has_ai_review else 'Riesgo similitud local'}: "
+        f"{summary['combined_originality_risk_pct']}%"
+    )
+    print(f"{'Calidad integral' if has_ai_review else 'Calidad heuristica'}: {summary['combined_quality_score_pct']}%")
     print(f"Riesgo heuristico: {summary['ai_style_risk_pct']}%")
     print(f"Calidad academica: {summary['academic_quality_pct']}%")
+    print(f"Texto puntuado: {summary.get('scored_words', summary.get('total_words', 0))}/{summary.get('total_words', 0)} palabras")
+    originality_scope = summary.get("originality_scope") or {}
+    print(
+        "Originalidad local: "
+        f"{originality_scope.get('comparable_paragraphs', 0)} parrafos comparables, "
+        f"{originality_scope.get('ignored_paragraphs', 0)} ignorados"
+    )
     if summary.get("experiment_reliability_pct") is not None:
         print(f"Fiabilidad experimental: {summary['experiment_reliability_pct']}%")
     review = summary.get("ai_model_review")

@@ -7,13 +7,13 @@ explicable y trazable:
 
 - calidad academica del documento;
 - riesgo heuristico de estilo generico;
-- revision obligatoria con IA local;
+- revision opcional con IA local;
 - metricas combinadas IA + heuristicas;
 - evidencia experimental reproducible;
 - similitud interna y local entre documentos;
 - dashboard HTML, informe Markdown, CSV y JSON.
 
-## Modo facil
+## Modo facil: descargar y abrir
 
 En macOS, desde Finder o VS Code:
 
@@ -21,7 +21,14 @@ En macOS, desde Finder o VS Code:
 2. Espera a que se abra el navegador.
 3. Sube un documento Word `.docx` o PDF de texto `.pdf`.
 4. Pulsa `Analizar documento`.
-5. Descarga el ZIP, HTML, Markdown o JSON.
+5. Revisa el dashboard que se abre al terminar.
+6. Descarga el ZIP, Markdown o JSON si lo necesitas.
+
+Desde una terminal en macOS o Linux:
+
+```bash
+./start.sh
+```
 
 La interfaz facil es un formulario HTML local en:
 
@@ -56,11 +63,12 @@ python3 -m venv .venv
 La forma mas robusta en cualquier terminal:
 
 ```bash
-scripts/run_local.sh
+./start.sh
 ```
 
-El arranque prepara tambien la IA local con Ollama y el modelo `llama3.1`. La primera
-vez puede tardar porque descarga el modelo. Apaga con `Ctrl+C`.
+El arranque crea el entorno Python, instala dependencias y abre el formulario en
+`http://127.0.0.1:8601`. No obliga a tener Ollama instalado para abrir la app. Apaga
+con `Ctrl+C`.
 
 Arranque en segundo plano:
 
@@ -96,26 +104,26 @@ Para la mayoria de usuarios, el flujo debe ser simple:
 
 1. Subir un documento Word `.docx` o PDF de texto `.pdf`.
 2. Pulsar `Analizar documento`.
-3. Revisar el dashboard.
-4. Descargar el informe en ZIP, HTML, Markdown o JSON.
+3. Revisar el dashboard completo que aparece como vista principal.
+4. Descargar el informe en ZIP, Markdown o JSON.
 
 Con solo el `.docx` o `.pdf`, la herramienta ya genera:
 
-- riesgo combinado de uso de IA;
-- riesgo combinado de originalidad/plagio;
+- riesgo de estilo compatible con uso de IA;
+- riesgo de originalidad/plagio local;
 - calidad academica integral;
-- desglose heuristico y desglose del modelo local;
+- desglose heuristico y, si hay modelo disponible, desglose del modelo local;
 - auditoria por secciones;
 - parrafos prioritarios;
 - informe Markdown;
 - dashboard HTML;
 - CSV/JSON de resultados.
 
-## Revision obligatoria con IA local
+## Revision con IA local
 
 La app incorpora una capa de revision con un modelo local mediante Ollama. Esta
-funcionalidad es obligatoria, gratuita, no requiere API keys, no usa servicios de pago
-y no sube documentos a plataformas externas.
+funcionalidad es gratuita, no requiere API keys, no usa servicios de pago y no sube
+documentos a plataformas externas.
 
 En cada auditoria, el modelo produce:
 
@@ -126,17 +134,24 @@ En cada auditoria, el modelo produce:
 - recomendaciones de mejora;
 - preguntas que podria hacer un profesor para verificar autoria y comprension.
 
-La portada del informe no se basa solo en el modelo ni solo en heuristicas. Usa tres
-metricas combinadas:
+Si el modelo local esta disponible, la portada del informe no se basa solo en el modelo
+ni solo en heuristicas. Usa tres metricas combinadas:
 
 - `Riesgo IA combinado`: 45% heuristica documental + 55% modelo IA local.
 - `Riesgo originalidad combinado`: maximo entre similitud local y riesgo estimado por el modelo.
 - `Calidad integral`: 60% calidad heuristica + 40% calidad estimada por el modelo.
 
+Si Ollama o el modelo seleccionado no estan listos, la herramienta puede generar un
+informe en modo heuristico. Ese informe sigue incluyendo calidad documental, senales de
+estilo, similitud local, trazabilidad experimental y dashboard, pero queda marcado como
+`solo heuristicas` y no incluye interpretacion del modelo local.
+
 ### Requisitos
 
+Para abrir la app no hace falta Ollama. Para la revision con IA local:
+
 1. Tener Ollama instalado y arrancado en el ordenador.
-2. Tener descargado al menos un modelo local.
+2. Tener descargado al menos un modelo local, o descargarlo desde la app.
 
 La forma automatica recomendada:
 
@@ -167,13 +182,30 @@ ollama pull qwen2.5
 
 En la app visual:
 
-1. Abre la barra lateral.
-2. Mantiene el modelo por defecto `llama3.1` o indica otro modelo local.
-3. Mantiene la URL por defecto si Ollama esta en el mismo ordenador:
+1. Elige un modelo gratuito recomendado en el selector.
+2. Si no esta instalado, la app lo descarga con Ollama al seleccionarlo.
+3. Durante la descarga muestra estado, porcentaje cuando Ollama lo informa y tamano descargado.
+4. Mantiene la URL por defecto si Ollama esta en el mismo ordenador:
 
 ```text
 http://127.0.0.1:11434
 ```
+
+Modelos recomendados para uso local:
+
+- `llama3.1`: opcion equilibrada por defecto.
+- `qwen2.5`: buen rendimiento en analisis y razonamiento.
+- `mistral`: modelo ligero y solido.
+- `gemma3`: buena opcion para equipos con menos memoria.
+- `llama3.2`: opcion muy ligera y rapida.
+
+La primera descarga puede tardar varios minutos. Depende del tamano del modelo, la
+conexion y el ordenador. Cuando el modelo ya esta instalado, la app lo detecta y lo
+marca como listo sin volver a descargarlo.
+
+Tambien puedes eliminar desde la app un modelo recomendado que ya este instalado. Esto
+usa la API local de Ollama para borrar el modelo del almacen local de Ollama. No borra
+logs del sistema, historial de terminal ni otros registros externos a la app.
 
 En CLI:
 
@@ -190,11 +222,11 @@ El CLI usa `llama3.1` por defecto. Puedes cambiar el modelo:
   --out-dir audit_output_ai
 ```
 
-`scripts/run_local.sh` y `scripts/start_local.sh` preparan la IA automaticamente. Si ya
-esta preparada y quieres saltar esa comprobacion:
+Por defecto, `./start.sh` no instala Ollama ni descarga modelos antes de abrir la app.
+Si quieres preparar la IA automaticamente desde terminal:
 
 ```bash
-ACADEMIC_AUDIT_SETUP_AI=0 scripts/run_local.sh
+ACADEMIC_AUDIT_SETUP_AI=1 ./start.sh
 ```
 
 ### Limites importantes
@@ -285,6 +317,14 @@ La app busca similitud textual local entre parrafos. Esto puede servir para dete
 El resultado no significa "plagio confirmado". Significa "coincidencia textual que
 conviene revisar".
 
+El informe deja trazabilidad del alcance usado:
+
+- documentos del corpus que si se pudieron comparar;
+- documentos del corpus no legibles;
+- parrafos comparables;
+- parrafos ignorados por brevedad, plantilla o baja variedad;
+- maxima similitud observada aunque quede por debajo del umbral.
+
 ### Recomendacion de usabilidad
 
 Para mantener el producto simple:
@@ -311,6 +351,11 @@ Compara el documento objetivo contra otros `.docx` o `.pdf` de una carpeta:
 .venv/bin/academic-audit audit documento.docx --corpus-dir carpeta_con_docs --out-dir audit_output
 ```
 
+Para que la lectura sea util, usa un corpus pequeno y relevante: versiones previas,
+trabajos del mismo grupo, documentos de referencia o entregas comparables. No mezcles
+libros grandes, examenes, apuntes y trabajos sin relacion si lo que buscas es una
+revision academica focalizada.
+
 ## Docker
 
 Para moverlo a otro ordenador con Docker instalado:
@@ -322,7 +367,7 @@ docker compose up --build
 Abre:
 
 ```text
-http://localhost:8501
+http://localhost:8601
 ```
 
 Para apagar:
@@ -334,7 +379,7 @@ docker compose down
 Los resultados quedan en:
 
 ```text
-runs/
+runs_form/
 ```
 
 Si usas Docker y Ollama esta instalado en el ordenador anfitrion, en la app usa esta
@@ -348,10 +393,22 @@ http://host.docker.internal:11434
 
 - `dashboard.html`: visualizacion principal.
 - `quality_audit_report.md`: informe textual.
+- `teacher_report.md`: informe breve para profesor con accion sugerida, preguntas y limites.
 - `audit_summary.json`: resumen estructurado.
 - `paragraph_audit.csv`: auditoria por parrafo.
 - `section_audit.csv`: auditoria por seccion.
 - `similarity_matches.csv`: coincidencias locales detectadas.
+
+## Tests
+
+La suite usa `unittest`, sin dependencias extra:
+
+```bash
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+Los tests cubren salida invalida del modelo, fallback heuristico, informe profesor,
+cabeceras repetidas y trazabilidad del corpus local.
 
 ## Posicionamiento
 
